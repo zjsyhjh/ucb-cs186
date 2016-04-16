@@ -143,7 +143,7 @@ public class Tuple implements Serializable {
             }
             @Override
             public void remove() {
-                throw new UnsupportedOperationException("implement this");
+                throw new UnsupportedOperationException("unimplemented");
             }
         };
         return it;

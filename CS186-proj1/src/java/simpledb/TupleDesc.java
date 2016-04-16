@@ -64,7 +64,7 @@ public class TupleDesc implements Serializable {
             }
             @Override
             public void remove() {
-                throw new UnsupportedOperationException("implement this");
+                throw new UnsupportedOperationException("unimplemented");
             }
         };
         return it;
@@ -179,7 +179,7 @@ public class TupleDesc implements Serializable {
         /* my code for TupleDesc */
         int index = -1;
         for (int i = 0; i < numFields(); i++) {
-            if (items[i].fieldName == name) {
+            if (items[i].fieldName.equals(name)) {
                 index = i;
                 break;
             }
