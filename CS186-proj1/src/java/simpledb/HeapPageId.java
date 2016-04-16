@@ -10,14 +10,27 @@ public class HeapPageId implements PageId {
      * @param tableId The table that is being referenced
      * @param pgNo The page number in that table.
      */
+
+    /* my code for HeapPageId */
+    private int tableId;
+    private int pgNo;
+    /* my code for HeapPageId */
+
     public HeapPageId(int tableId, int pgNo) {
         // some code goes here
+        /* my code for HeapPageId */
+        this.tableId = tableId;
+        this.pgNo = pgNo;
+        /* my code for HeapPageId */
     }
 
     /** @return the table associated with this PageId */
     public int getTableId() {
         // some code goes here
-        return 0;
+        //return 0;
+        /* my code for HeapPageId */
+        return this.tableId;
+        /* my code for HeapPageId */
     }
 
     /**
@@ -26,7 +39,10 @@ public class HeapPageId implements PageId {
      */
     public int pageNumber() {
         // some code goes here
-        return 0;
+        //return 0;
+        /*my code for HeapPageId */
+        return this.pgNo;
+        /*my code for HeapPageId */
     }
 
     /**
@@ -37,7 +53,10 @@ public class HeapPageId implements PageId {
      */
     public int hashCode() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        //throw new UnsupportedOperationException("implement this");
+        /* my code for HeapPageId */
+        return tableId * pgNo;
+        /* my code for HeapPageId */
     }
 
     /**
@@ -49,7 +68,17 @@ public class HeapPageId implements PageId {
      */
     public boolean equals(Object o) {
         // some code goes here
+        //return false;
+        /* my code for HeapPageId */
+        if (o instanceof PageId) {
+            HeapPageId pid = (HeapPageId)o;
+            if (this.tableId == pid.tableId && this.pgNo == pid.pgNo) {
+                return true;
+            }
+            return false;
+        }
         return false;
+        /* my code for HeapPageId */
     }
 
     /**
