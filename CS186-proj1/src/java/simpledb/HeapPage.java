@@ -3,6 +3,7 @@ package simpledb;
 import java.io.*;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.BitSet;
 
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and
@@ -82,7 +83,7 @@ public class HeapPage implements Page {
         // some code goes here
         //return 0;
         /* my code for HeapPage */
-        return (int)Math.ceil(numSlots / 8);
+        return (int)Math.ceil(numSlots / 8.0);
         /* my code for HeapPage */
     }
 
@@ -283,6 +284,7 @@ public class HeapPage implements Page {
         // some code goes here
         //return 0;
         /* my code for HeapPage */
+        /*
         int count = 0;
         for (int i = 0; i < tuples.length; i++) {
             if (!isSlotUsed(i)) {
@@ -290,6 +292,9 @@ public class HeapPage implements Page {
             }
         }
         return count;
+        */
+        BitSet bitset = BitSet.valueOf(header);
+        return getNumTuples() - bitset.cardinality();
         /* my code for HeapPage */
     }
 
@@ -300,8 +305,12 @@ public class HeapPage implements Page {
         // some code goes here
         //return false;
         /* my code for HeapPage */
-        int bit = (header[i / 8] >> (i %  8));
+        /*
+        int bit = (int)header[i/8] >> (i % 8);
         return (bit & 1) == 1;
+        */
+        BitSet bitset = BitSet.valueOf(header);
+        return bitset.get(i);
         /* my code for HeapPage */
     }
 

@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.util.*;
+import simpledb.TupleDesc.TDItem;
 
 /**
  * SeqScan is an implementation of a sequential scan access method that reads
@@ -14,7 +15,7 @@ public class SeqScan implements DbIterator {
     /**
      * Creates a sequential scan over the specified table as a part of the
      * specified transaction.
-     * 
+     *
      * @param tid
      *            The transaction this scan is running as a part of.
      * @param tableid
@@ -27,8 +28,19 @@ public class SeqScan implements DbIterator {
      *            are, but the resulting name can be null.fieldName,
      *            tableAlias.null, or null.null).
      */
+
+    /* my code for SeqScan */
+    private TransactionId tid;
+    private int tableid;
+    private String tableAlias;
+    private DbFileIterator iterator;
+    /* my code for SeqScan */
+
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
+        this.tid = tid;
+        this.tableid = tableid;
+        this.tableAlias = tableAlias;
     }
 
     /**
@@ -37,16 +49,22 @@ public class SeqScan implements DbIterator {
      *       be the actual name of the table in the catalog of the database
      * */
     public String getTableName() {
-        return null;
+        //return null;
+        /* my code for SeqScan */
+        return Database.getCatalog().getTableName(tableid);
+        /* my code for SeqScan */
     }
-    
+
     /**
-     * @return Return the alias of the table this operator scans. 
+     * @return Return the alias of the table this operator scans.
      * */
     public String getAlias()
     {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for SeqScan */
+        return tableAlias;
+        /* my code for SeqScan */
     }
 
     /**
@@ -63,6 +81,10 @@ public class SeqScan implements DbIterator {
      */
     public void reset(int tableid, String tableAlias) {
         // some code goes here
+        /* my code for SeqScan */
+        this.tableid = tableid;
+        this.tableAlias = tableAlias;
+        /* my code for SeqScan */
     }
 
     public SeqScan(TransactionId tid, int tableid) {
@@ -71,6 +93,10 @@ public class SeqScan implements DbIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        /* my code for SeqScan */
+        iterator = Database.getCatalog().getDbFile(tableid).iterator(tid);
+        iterator.open();
+        /* my code for SeqScan */
     }
 
     /**
@@ -78,32 +104,58 @@ public class SeqScan implements DbIterator {
      * prefixed with the tableAlias string from the constructor. This prefix
      * becomes useful when joining tables containing a field(s) with the same
      * name.
-     * 
+     *
      * @return the TupleDesc with field names from the underlying HeapFile,
      *         prefixed with the tableAlias string from the constructor.
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        // return null;
+        /* my code for SeqScan */
+        TupleDesc oldtd = Database.getCatalog().getDbFile(tableid).getTupleDesc();
+        Iterator<TDItem> it = oldtd.iterator();
+        Type[] types = new Type[oldtd.numFields()];
+        String[] names = new String[oldtd.numFields()];
+        int index = 0;
+        while (it.hasNext()) {
+            TDItem item = it.next();
+            types[index] = item.fieldType;
+            names[index] = tableAlias + "." + item.fieldName;
+            index++;
+        }
+        return new TupleDesc(types, names);
+        /* my code for SeqScan */
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return false;
+        //return false;
+        /* my code for SeqScan */
+        return iterator.hasNext();
+        /* my code for SeqScan */
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for SeqScan */
+        return iterator.next();
+        /* my code for SeqScan */
     }
 
     public void close() {
         // some code goes here
+        /* my code for SeqScan */
+        iterator.close();
+        /* my code for SeqScan */
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        /* my code for SeqScan */
+        iterator.rewind();
+        /* my code for SeqScan */
     }
 }

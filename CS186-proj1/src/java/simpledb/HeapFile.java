@@ -116,7 +116,7 @@ public class HeapFile implements DbFile {
         // some code goes here
         //return 0;
         /* my code for HeapFile */
-        return (int)Math.ceil(f.length() / BufferPool.PAGE_SIZE);
+        return (int)Math.ceil(f.length() * 1.0 / BufferPool.PAGE_SIZE);
         /* my code for HeapFile */
     }
 
