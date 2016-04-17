@@ -1,6 +1,8 @@
 package simpledb;
 
 import java.io.*;
+import java.sql.DatabaseMetaData;
+import java.util.HashMap;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -25,8 +27,17 @@ public class BufferPool {
      *
      * @param numPages maximum number of pages in this buffer pool.
      */
+    /* my code for BufferPool */
+    private int numPages;
+    private HashMap<PageId, Page> pagesCacheMap = null;
+    /* my code for BufferPool */
+
     public BufferPool(int numPages) {
         // some code goes here
+        /* my code for BufferPool */
+        this.numPages = numPages;
+        this.pagesCacheMap = new HashMap<PageId, Page>();
+        /* my code for BufferPool */
     }
 
     /**
@@ -47,7 +58,19 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for BufferPool */
+        Page page = null;
+        //not in cache, need to fetch from Dbfile
+        if (!pagesCacheMap.containsKey(pid)) {
+            DbFile file = (Database.getCatalog()).getDbFile(pid.getTableId());
+            page = file.readPage(pid);
+            pagesCacheMap.put(pid, page);
+        } else {
+            page = pagesCacheMap.get(pid);
+        }
+        return page;
+        /* my code for BufferPool */
     }
 
     /**
