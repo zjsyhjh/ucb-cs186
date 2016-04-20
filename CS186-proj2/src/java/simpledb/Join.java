@@ -12,7 +12,7 @@ public class Join extends Operator {
     /**
      * Constructor. Accepts to children to join and the predicate to join them
      * on
-     * 
+     *
      * @param p
      *            The predicate to use to join the children
      * @param child1
@@ -20,13 +20,28 @@ public class Join extends Operator {
      * @param child2
      *            Iterator for the right(inner) relation to join
      */
+
+    /* my code for Join */
+    private JoinPredicate p;
+    private DbIterator child1;
+    private DbIterator child2;
+    /* my code for Join */
+
     public Join(JoinPredicate p, DbIterator child1, DbIterator child2) {
         // some code goes here
+        /* my code for Join */
+        this.p = p;
+        this.child1 = child1;
+        this.child2 = child2;
+        /* my code for Join */
     }
 
     public JoinPredicate getJoinPredicate() {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for Join */
+        return p;
+        /* my code for Join */
     }
 
     /**
@@ -36,7 +51,10 @@ public class Join extends Operator {
      * */
     public String getJoinField1Name() {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for Join */
+        return child1.getTupleDesc().getFieldName(p.getField1());
+        /* my code for Join */
     }
 
     /**
@@ -46,7 +64,10 @@ public class Join extends Operator {
      * */
     public String getJoinField2Name() {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for Join */
+        return child2.getTupleDesc().getFieldName(p.getField2());
+        /* my code for Join */
     }
 
     /**
@@ -55,20 +76,39 @@ public class Join extends Operator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for Join */
+        TupleDesc td1 = child1.getTupleDesc();
+        TupleDesc td2 = child2.getTupleDesc();
+        return TupleDesc.merge(td1, td2);
+        /* my code for Join */
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        /* my code for Join */
+        child1.open();
+        child2.open();
+        super.open();
+        /* my code for Join */
     }
 
     public void close() {
         // some code goes here
+        /* my code for Join */
+        child1.close();
+        child2.close();
+        super.close();
+        /* my code for Join */
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+        /* my code for Join */
+        child1.rewind();
+        child2.rewind();
+        /* my code for Join */
     }
 
     /**
@@ -85,24 +125,57 @@ public class Join extends Operator {
      * <p>
      * For example, if one tuple is {1,2,3} and the other tuple is {1,5,6},
      * joined on equality of the first column, then this returns {1,2,3,1,5,6}.
-     * 
+     *
      * @return The next matching tuple.
      * @see JoinPredicate#filter
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
+        //return null;
+        /* my code for Join */
+        while (child1.hasNext()) {
+            Tuple tuple1 = child1.next();
+            while (child2.hasNext()) {
+                Tuple tuple2 = child2.next();
+                if (p.filter(tuple1, tuple2)) {
+                    Tuple tuple = new Tuple(TupleDesc.merge(tuple1.getTupleDesc(), tuple2.getTupleDesc()));
+                    Iterator<Field> field1 = tuple1.fields();
+                    Iterator<Field> field2 = tuple2.fields();
+                    int index = 0;
+                    while (field1.hasNext()) {
+                        tuple.setField(index, field1.next());
+                        index++;
+                    }
+                    while (field2.hasNext()) {
+                        tuple.setField(index, field2.next());
+                        index++;
+                    }
+                    return tuple;
+                }
+            }
+            child2.rewind();
+        }
         return null;
+        /* my code for Join */
+
     }
 
     @Override
     public DbIterator[] getChildren() {
         // some code goes here
-        return null;
+        //return null;
+        /* my code for Join */
+        return new DbIterator[] {child1, child2};
+        /* my code for Join */
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
         // some code goes here
+        /* my code for Join */
+        children[0] = child1;
+        children[1] = child2;
+        /* my code for Join */
     }
 
 }
