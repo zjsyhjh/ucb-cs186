@@ -129,7 +129,7 @@ public class Predicate implements Serializable {
         // some code goes here
         //return false;
         /* my code for Predicate */
-        return operand.compare(op, t.getField(field));
+        return t.getField(field).compare(op, operand);
         /* my code for Predicate */
     }
 
