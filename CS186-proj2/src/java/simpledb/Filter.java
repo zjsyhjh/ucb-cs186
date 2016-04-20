@@ -1,7 +1,6 @@
 package simpledb;
 
 import java.util.*;
-import javax.sql.rowset.Predicate;
 
 /**
  * Filter is an operator that implements a relational select.

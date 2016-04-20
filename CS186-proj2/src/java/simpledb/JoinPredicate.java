@@ -1,7 +1,6 @@
 package simpledb;
 
 import java.io.Serializable;
-import javax.sql.rowset.Predicate;
 
 /**
  * JoinPredicate compares fields of two tuples using a predicate. JoinPredicate
