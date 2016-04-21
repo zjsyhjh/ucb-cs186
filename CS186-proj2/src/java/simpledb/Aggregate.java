@@ -13,12 +13,12 @@ public class Aggregate extends Operator {
 
     /**
      * Constructor.
-     * 
+     *
      * Implementation hint: depending on the type of afield, you will want to
      * construct an {@link IntAggregator} or {@link StringAggregator} to help
      * you with your implementation of readNext().
-     * 
-     * 
+     *
+     *
      * @param child
      *            The DbIterator that is feeding us tuples.
      * @param afield
@@ -29,8 +29,32 @@ public class Aggregate extends Operator {
      * @param aop
      *            The aggregation operator to use
      */
+
+    /* my code for Aggregate */
+    private DbIterator child;
+    private int afield;
+    private int gfield;
+    private Aggregator.Op aop;
+    private Aggregator res;
+    private DbIterator resIt;
+    /* my code for Aggregate */
     public Aggregate(DbIterator child, int afield, int gfield, Aggregator.Op aop) {
-	// some code goes here
+	       // some code goes here
+           /* my code for Aggregate */
+           this.child = child;
+           this.afield = afield;
+           this.gfield = gfield;
+           this.aop = aop;
+           Type gtype = null;
+           if (gfield != -1) {
+               gtype = child.getTupleDesc().getFieldType(gfield);
+           }
+           if (child.getTupleDesc().getFieldType(afield).equals(Type.INT_TYPE)) {
+               res = new IntegerAggregator(gfield, gtype, afield, aop);
+           } else {
+               res = new StringAggregator(gfield, gtype, afield, aop);
+           }
+           /* my code for Aggregate */
     }
 
     /**
@@ -40,7 +64,10 @@ public class Aggregate extends Operator {
      * */
     public int groupField() {
 	// some code goes here
-	return -1;
+	//return -1;
+        /* my code for Aggregate */
+        return gfield;
+        /* my code for Aggregate */
     }
 
     /**
@@ -50,7 +77,13 @@ public class Aggregate extends Operator {
      * */
     public String groupFieldName() {
 	// some code goes here
-	return null;
+	//return null;
+        /* my code for Aggregate */
+        if (gfield == -1) {
+            return null;
+        }
+        return child.getTupleDesc().getFieldName(gfield);
+        /* my code for Aggregate */
     }
 
     /**
@@ -58,7 +91,10 @@ public class Aggregate extends Operator {
      * */
     public int aggregateField() {
 	// some code goes here
-	return -1;
+	//return -1;
+        /* my code for Aggregate */
+        return afield;
+        /* my code for Aggregate */
     }
 
     /**
@@ -67,7 +103,10 @@ public class Aggregate extends Operator {
      * */
     public String aggregateFieldName() {
 	// some code goes here
-	return null;
+	//return null;
+        /* my code for Aggregate */
+        return child.getTupleDesc().getFieldName(afield);
+        /* my code for Aggregate */
     }
 
     /**
@@ -75,7 +114,10 @@ public class Aggregate extends Operator {
      * */
     public Aggregator.Op aggregateOp() {
 	// some code goes here
-	return null;
+	//return null;
+        /* my code for Aggregate */
+        return aop;
+        /* my code for Aggregate */
     }
 
     public static String nameOfAggregatorOp(Aggregator.Op aop) {
@@ -85,6 +127,15 @@ public class Aggregate extends Operator {
     public void open() throws NoSuchElementException, DbException,
 	    TransactionAbortedException {
 	// some code goes here
+        /* my code for Aggregate */
+        super.open();
+        child.open();
+        while (child.hasNext()) {
+            res.mergeTupleIntoGroup(child.next());
+        }
+        resIt = res.iterator();
+        resIt.open();
+        /* my code for Aggregate */
     }
 
     /**
@@ -96,11 +147,23 @@ public class Aggregate extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
 	// some code goes here
-	return null;
+	//return null;
+        /* my code for Aggregate */
+        if (resIt == null) {
+            throw new DbException("must be opened first");
+        }
+        if (resIt.hasNext()) {
+            return resIt.next();
+        }
+        return null;
+        /* my code for Aggregate */
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
 	// some code goes here
+        /* my code for Aggregate */
+        child.rewind();
+        /* my code for Aggregate */
     }
 
     /**
@@ -108,7 +171,7 @@ public class Aggregate extends Operator {
      * this will have one field - the aggregate column. If there is a group by
      * field, the first field will be the group by field, and the second will be
      * the aggregate value column.
-     * 
+     *
      * The name of an aggregate column should be informative. For example:
      * "aggName(aop) (child_td.getFieldName(afield))" where aop and afield are
      * given in the constructor, and child_td is the TupleDesc of the child
@@ -116,22 +179,33 @@ public class Aggregate extends Operator {
      */
     public TupleDesc getTupleDesc() {
 	// some code goes here
-	return null;
+	//return null;
+        return res.iterator().getTupleDesc();
     }
 
     public void close() {
 	// some code goes here
+        /* my code for Aggregate */
+        super.close();
+        child.close();
+        /* my code for Aggregate */
     }
 
     @Override
     public DbIterator[] getChildren() {
 	// some code goes here
-	return null;
+	//return null;
+        /* my code for Aggregate */
+        return new DbIterator[] {child};
+        /* my code for Aggregate */
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
 	// some code goes here
+        /* my code for Aggregate */
+        children[0] = child;
+        /* my code for Aggregate */
     }
-    
+
 }
