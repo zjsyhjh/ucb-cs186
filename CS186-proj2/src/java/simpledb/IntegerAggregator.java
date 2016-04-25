@@ -1,7 +1,7 @@
 package simpledb;
 
 import java.util.*;
-import org.omg.CORBA.INTF_REPOS;
+import java.util.ArrayList;
 
 /**
  * Knows how to compute some aggregate over a set of IntFields.
@@ -69,36 +69,38 @@ public class IntegerAggregator implements Aggregator {
         switch(what) {
             case MIN:
                 if (map.get(groupbyField) == null) {
-                    value = (IntField)tup.getField(afield).getValue();
+                    value = ((IntField)tup.getField(afield)).getValue();
                 } else {
-                    value = Math.min((IntField)tup.getField(afield).getValue(), map.get(groupField));
+                    value = Math.min(((IntField)tup.getField(afield)).getValue(), map.get(groupbyField));
                 }
                 break;
             case MAX:
                 if (map.get(groupbyField) == null) {
-                    value = (IntField)tup.getField(afield).getValue();
+                    value = ((IntField)tup.getField(afield)).getValue();
                 } else {
-                    value = Math.max((IntField)tup.getField(afield).getValue(), map.get(groupbyField));
+                    value = Math.max(((IntField)tup.getField(afield)).getValue(), map.get(groupbyField));
                 }
                 break;
             case SUM:
                 if (map.get(groupbyField) == null) {
-                    value = (IntField)tup.getField(afield).getValue();
+                    value = ((IntField)tup.getField(afield)).getValue();
                 } else {
-                    value = map.get(groupbyField) + (IntField)tup.getField(afield).getValue();
+                    value = map.get(groupbyField) + ((IntField)tup.getField(afield)).getValue();
                 }
                 break;
             case AVG:
                 if (countMap.get(groupbyField) == null) {
                     countMap.put(groupbyField, 1);
-                    sumMap.put(groupbyField, (IntField)tup.getField(afield).getValue());
+                    value = ((IntField)tup.getField(afield)).getValue();
+                    sumMap.put(groupbyField, value);
+
                 } else {
-                    value = sumMap.get(groupbyField) + (IntField)tup.getField(afield).getValue();
+                    value = sumMap.get(groupbyField) + ((IntField)tup.getField(afield)).getValue();
                     sumMap.put(groupbyField, value);
                     int count = countMap.get(groupbyField) + 1;
                     countMap.put(groupbyField, count);
+                    value /= count;
                 }
-                value = value / count;
                 break;
             case COUNT:
                 if (map.get(groupbyField) == null) {
@@ -110,6 +112,9 @@ public class IntegerAggregator implements Aggregator {
         }
 
         map.put(groupbyField, value);
+        if (td == null) {
+            td = makeTupleDesc(tup);
+        }
     }
 
     /**
@@ -122,8 +127,41 @@ public class IntegerAggregator implements Aggregator {
      */
     public DbIterator iterator() {
         // some code goes here
-        throw new
-        UnsupportedOperationException("please implement me for proj2");
+        //throw new
+        //UnsupportedOperationException("please implement me for proj2");
+        /* my code for IntegerAggregator */
+        ArrayList<Tuple> arrayList = new ArrayList<Tuple>();
+        for (Field f : map.keySet()) {
+            Tuple tuple = new Tuple(td);
+            if (gbfield == Aggregator.NO_GROUPING) {
+                tuple.setField(0, new IntField(map.get(f)));
+            } else {
+                tuple.setField(0, f);
+                tuple.setField(1, new IntField(map.get(f)));
+            }
+            arrayList.add(tuple);
+        }
+        return new TupleIterator(td, arrayList);
+        /* my code for IntegerAggregator */
+    }
+
+    private TupleDesc makeTupleDesc(Tuple tuple) {
+        Type[] typeAr;
+        String[] fieldAr;
+        if (gbfield == Aggregator.NO_GROUPING) {
+            typeAr = new Type[1];
+            fieldAr = new String[1];
+            typeAr[0] = Type.INT_TYPE;
+            fieldAr[0] = tuple.getTupleDesc().getFieldName(afield);
+        } else {
+            typeAr = new Type[2];
+            fieldAr = new String[2];
+            typeAr[0] = Type.INT_TYPE;
+            fieldAr[0] = tuple.getTupleDesc().getFieldName(gbfield);
+            typeAr[1] = Type.INT_TYPE;
+            fieldAr[1] = tuple.getTupleDesc().getFieldName(afield);
+        }
+        return new TupleDesc(typeAr, fieldAr);
     }
 
 }
