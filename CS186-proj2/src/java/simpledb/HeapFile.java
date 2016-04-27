@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.security.acl.Permission;
 import java.util.*;
+import java.util.ArrayList;
 
 /**
  * HeapFile is an implementation of a DbFile that stores a collection of tuples
@@ -124,16 +125,51 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        return null;
+        //return null;
         // not necessary for proj1
+        /* my code for proj2 */
+        ArrayList<Page> pageList = new ArrayList<Page>();
+        BufferPool bufferPool = Database.getBufferPool();
+        for (int i = 0; i < numPages(); i++) {
+            PageId pid = new HeapPageId(getId(), i);
+            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permission.READ_WRITE);
+            if (page.getNumEmptySlots() != 0) {
+                page.insertTuple(t);
+                pageList.add(page);
+                break;
+            }
+        }
+        //
+        if (pageList.isEmpty()) {
+            PageId pid = new HeapPageId(getId(), numPages());
+            try {
+                byte[] bytes = HeapPage.createEmptyPageData();
+                RandomAccessFile file = new RandomAccessFile(getFile(), "rw");
+                file.seek(pid.pageNumber() * BufferPool.PAGE_SIZE);
+                file.write(bytes);
+            } catch(FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permission.READ_WRITE);
+            page.insertTuple(t);
+            pageList.add(page);
+        }
+        return pageList;
+        /* my code for proj2 */
     }
 
     // see DbFile.java for javadocs
     public Page deleteTuple(TransactionId tid, Tuple t) throws DbException,
             TransactionAbortedException {
         // some code goes here
-        return null;
+        //return null;
         // not necessary for proj1
+        /* my code for proj2 */
+        BufferPool bufferPool = Database.getBufferPool();
+        HeapPage page = (HeapPage)bufferPool.getPage(tid, t.getRecordId().getPageId(), Permission.READ_WRITE);
+        page.deleteTuple(t);
+        return page;
+        /* my code for proj2 */
     }
 
     // see DbFile.java for javadocs
