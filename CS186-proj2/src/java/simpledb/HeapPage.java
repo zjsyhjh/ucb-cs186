@@ -245,6 +245,21 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        /* my code for lab2 */
+        if (!t.getTupleDesc().equals(td)) {
+            throw new DbException("The tuple is not match");
+        }
+        if (!t.getRecordId().getPageId().equals(pid)) {
+            throw new DbException("The tuple is not in this page");
+        }
+        int tupleId = t.getRecordId().tupleno();
+        if (!isSlotUsed(tupleId)) {
+            throw new DbException("The slot is empty");
+        }
+        markSlotUsed(tupleId, false);
+        tuple[tupleId] = null;
+        t.setRecordId(null);
+        /* my code for lab2 */
     }
 
     /**
@@ -257,6 +272,22 @@ public class HeapPage implements Page {
     public void insertTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        /* my code for lab2 */
+        if (getNumEmptySlots() == 0) {
+            throw new DbException("The page is full");
+        }
+        if (!t.getTupleDesc().equals(td)) {
+            throw new DbException("The tuple is not match");
+        }
+        for (int i = 0; i < getNumTuples(); i++) {
+            if (!isSlotUsed(i)) {
+                tuple[i] = t;
+                markSlotUsed(i, true);
+                t.setRecordId(new RecordId(pid, i));
+                break;
+            }
+        }
+        /* my code for lab2 */
     }
 
     /**
@@ -320,6 +351,13 @@ public class HeapPage implements Page {
     private void markSlotUsed(int i, boolean value) {
         // some code goes here
         // not necessary for lab1
+        /* my code for lab2 */
+        if (value) {
+            header[i / 8] |= (byte)(1 << i % 8);
+        } else {
+            header[i / 8] &= (byte)(1 << i % 8);
+        }
+        /* my code for lab2 */
     }
 
     /**
