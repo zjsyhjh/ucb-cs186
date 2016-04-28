@@ -23,6 +23,8 @@ public class HeapPage implements Page {
 
     byte[] oldData;
 
+    private TransactionId dirtytid;
+
     /**
      * Create a HeapPage from a set of bytes of data read from disk.
      * The format of a HeapPage is a set of header bytes indicating
@@ -246,6 +248,9 @@ public class HeapPage implements Page {
         // some code goes here
         // not necessary for lab1
         /* my code for lab2 */
+        if (t.getRecordId() == null) {
+            throw new DbException("The tuple is not exist");
+        }
         if (!t.getTupleDesc().equals(td)) {
             throw new DbException("The tuple is not match");
         }
@@ -257,7 +262,7 @@ public class HeapPage implements Page {
             throw new DbException("The slot is empty");
         }
         markSlotUsed(tupleId, false);
-        tuple[tupleId] = null;
+        tuples[tupleId] = null;
         t.setRecordId(null);
         /* my code for lab2 */
     }
@@ -281,7 +286,7 @@ public class HeapPage implements Page {
         }
         for (int i = 0; i < getNumTuples(); i++) {
             if (!isSlotUsed(i)) {
-                tuple[i] = t;
+                tuples[i] = t;
                 markSlotUsed(i, true);
                 t.setRecordId(new RecordId(pid, i));
                 break;
@@ -297,6 +302,13 @@ public class HeapPage implements Page {
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
 	// not necessary for lab1
+        /* my code for proj2 */
+        if (dirty) {
+            dirtytid = tid;
+        } else {
+            dirtytid = null;
+        }
+        /* my code for proj2 */
     }
 
     /**
@@ -305,7 +317,10 @@ public class HeapPage implements Page {
     public TransactionId isDirty() {
         // some code goes here
 	// Not necessary for lab1
-        return null;
+        //return null;
+        /* my code for proj2 */
+        return dirtytid;
+        /* my code for proj2 */
     }
 
     /**
@@ -355,7 +370,7 @@ public class HeapPage implements Page {
         if (value) {
             header[i / 8] |= (byte)(1 << i % 8);
         } else {
-            header[i / 8] &= (byte)(1 << i % 8);
+            header[i / 8] &= (byte)~(1 << i % 8);
         }
         /* my code for lab2 */
     }

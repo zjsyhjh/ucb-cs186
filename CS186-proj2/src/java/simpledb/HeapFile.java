@@ -132,7 +132,7 @@ public class HeapFile implements DbFile {
         BufferPool bufferPool = Database.getBufferPool();
         for (int i = 0; i < numPages(); i++) {
             PageId pid = new HeapPageId(getId(), i);
-            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permission.READ_WRITE);
+            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permissions.READ_WRITE);
             if (page.getNumEmptySlots() != 0) {
                 page.insertTuple(t);
                 pageList.add(page);
@@ -150,7 +150,7 @@ public class HeapFile implements DbFile {
             } catch(FileNotFoundException e) {
                 e.printStackTrace();
             }
-            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permission.READ_WRITE);
+            HeapPage page = (HeapPage)bufferPool.getPage(tid, pid, Permissions.READ_WRITE);
             page.insertTuple(t);
             pageList.add(page);
         }
@@ -165,8 +165,9 @@ public class HeapFile implements DbFile {
         //return null;
         // not necessary for proj1
         /* my code for proj2 */
+        /* don't need to delete tuple in file ? */
         BufferPool bufferPool = Database.getBufferPool();
-        HeapPage page = (HeapPage)bufferPool.getPage(tid, t.getRecordId().getPageId(), Permission.READ_WRITE);
+        HeapPage page = (HeapPage)bufferPool.getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
         page.deleteTuple(t);
         return page;
         /* my code for proj2 */
