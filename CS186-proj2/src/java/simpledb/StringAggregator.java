@@ -55,7 +55,7 @@ public class StringAggregator implements Aggregator {
             groupbyField = tup.getField(gbfield);
         }
         int value = 0;
-        if (countMap.get(groupbyField) == null) {
+        if (!countMap.containsKey(groupbyField)) {
             value = 1;
         } else {
             value = countMap.get(groupbyField) + 1;
@@ -82,7 +82,7 @@ public class StringAggregator implements Aggregator {
         ArrayList<Tuple> arrayList = new ArrayList<Tuple>();
         for (Field f : countMap.keySet()) {
             Tuple tuple = new Tuple(td);
-            if (gbfield == Aggregator.NO_GROUPING) {
+            if (((IntField)f).getValue() == Aggregator.NO_GROUPING) {
                 tuple.setField(0, new IntField(countMap.get(f)));
             } else {
                 tuple.setField(0, f);

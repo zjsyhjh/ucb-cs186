@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -65,6 +66,23 @@ public class BufferPool {
         if (!pagesCacheMap.containsKey(pid)) {
             DbFile file = (Database.getCatalog()).getDbFile(pid.getTableId());
             page = file.readPage(pid);
+            /* my code for proj2 */
+            if (pagesCacheMap.size() >= numPages) {
+                /* random evictPage */
+                for (PageId pageId : pagesCacheMap.keySet()) {
+                    Page p = pagesCacheMap.get(pageId);
+                    if (p.isDirty() != null) {
+                        try {
+                            flushPage(pageId);
+                        } catch(IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    pagesCacheMap.remove(pageId);
+                    break;
+                }
+            }
+            /* my code for proj2 */
             pagesCacheMap.put(pid, page);
         } else {
             page = pagesCacheMap.get(pid);
@@ -180,6 +198,11 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* my code for proj2 */
+        for (PageId pid : pagesCacheMap.keySet()) {
+            flushPage(pid);
+        }
+        /* my code for proj2 */
 
     }
 
@@ -200,6 +223,12 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* my code for proj2 */
+        HeapFile file = (HeapFile)Database.getCatalog().getDbFile(pid.getTableId());
+        Page page = pagesCacheMap.get(pid);
+        file.writePage(page);
+        page.markDirty(false, null);
+        /* my code for proj2 */
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -207,6 +236,14 @@ public class BufferPool {
     public synchronized  void flushPages(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* my code for proj2 */
+        for (PageId pid : pagesCacheMap.keySet()) {
+            Page page = pagesCacheMap.get(pid);
+            if (page.isDirty() != null && tid.equals(page.isDirty())) {
+                flushPage(pid);
+            }
+        }
+        /* my code for proj2 */
     }
 
     /**

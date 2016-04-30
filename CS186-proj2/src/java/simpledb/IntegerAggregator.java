@@ -149,14 +149,12 @@ public class IntegerAggregator implements Aggregator {
         Type[] typeAr;
         String[] fieldAr;
         if (gbfield == Aggregator.NO_GROUPING) {
-            typeAr = new Type[1];
-            fieldAr = new String[1];
-            typeAr[0] = Type.INT_TYPE;
-            fieldAr[0] = tuple.getTupleDesc().getFieldName(afield);
+            typeAr = new Type[]{Type.INT_TYPE};
+            fieldAr = new String[]{tuple.getTupleDesc().getFieldName(afield)};
         } else {
             typeAr = new Type[2];
             fieldAr = new String[2];
-            typeAr[0] = Type.INT_TYPE;
+            typeAr[0] = tuple.getTupleDesc().getFieldType(gbfield);
             fieldAr[0] = tuple.getTupleDesc().getFieldName(gbfield);
             typeAr[1] = Type.INT_TYPE;
             fieldAr[1] = tuple.getTupleDesc().getFieldName(afield);

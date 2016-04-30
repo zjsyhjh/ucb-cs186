@@ -4,6 +4,7 @@ import java.io.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.management.BufferPoolMXBean;
 import java.security.acl.Permission;
 import java.util.*;
 import java.util.ArrayList;
@@ -108,6 +109,20 @@ public class HeapFile implements DbFile {
     public void writePage(Page page) throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* my code for proj2 */
+        RandomAccessFile wf = null;
+        byte[] data = page.getPageData();
+        try {
+            wf = new RandomAccessFile(f, "rw");
+            wf.seek(page.getId().pageNumber() * BufferPool.PAGE_SIZE);
+            wf.write(data);
+            wf.close();
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        /* my code for proj2 */
     }
 
     /**

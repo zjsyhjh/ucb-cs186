@@ -121,7 +121,7 @@ public class Aggregate extends Operator {
     }
 
     public static String nameOfAggregatorOp(Aggregator.Op aop) {
-	return aop.toString();
+	       return aop.toString();
     }
 
     public void open() throws NoSuchElementException, DbException,
@@ -162,6 +162,7 @@ public class Aggregate extends Operator {
     public void rewind() throws DbException, TransactionAbortedException {
 	// some code goes here
         /* my code for Aggregate */
+        resIt.rewind();
         child.rewind();
         /* my code for Aggregate */
     }
@@ -180,13 +181,26 @@ public class Aggregate extends Operator {
     public TupleDesc getTupleDesc() {
 	// some code goes here
 	//return null;
-        return res.iterator().getTupleDesc();
+        /* my code for Aggregate */
+        Type[] types;
+        String[] fieldNames;
+        String aName = aop.toString() + "(" + child.getTupleDesc().getFieldName(afield) + ")";
+        if (gfield == -1) {
+            types = new Type[]{child.getTupleDesc().getFieldType(afield)};
+            fieldNames = new String[]{aName};
+        } else {
+            types = new Type[]{child.getTupleDesc().getFieldType(gfield), child.getTupleDesc().getFieldType(afield)};
+            fieldNames = new String[]{groupFieldName(), aName};
+        }
+        return new TupleDesc(types, fieldNames);
+        /* my code for Aggregate */
     }
 
     public void close() {
 	// some code goes here
         /* my code for Aggregate */
         super.close();
+        resIt.close();
         child.close();
         /* my code for Aggregate */
     }
