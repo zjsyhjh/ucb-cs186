@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.omg.CORBA.INTF_REPOS;
 
 /**
  * TableStats represents statistics (e.g., histograms) about base tables in a

@@ -1,7 +1,6 @@
 package simpledb;
 
 import java.util.*;
-
 import javax.swing.*;
 import javax.swing.tree.*;
 
@@ -16,7 +15,7 @@ public class JoinOptimizer {
 
     /**
      * Constructor
-     * 
+     *
      * @param p
      *            the logical plan being optimized
      * @param joins
@@ -34,7 +33,7 @@ public class JoinOptimizer {
      * inner/outer here -- because DbIterator's don't provide any cardinality
      * estimates, and stats only has information about the base tables. For this
      * reason, the plan1
-     * 
+     *
      * @param lj
      *            The join being considered
      * @param plan1
@@ -76,14 +75,14 @@ public class JoinOptimizer {
 
     /**
      * Estimate the cost of a join.
-     * 
+     *
      * The cost of the join should be calculated based on the join algorithm (or
      * algorithms) that you implemented for Project 2. It should be a function of
      * the amount of data that must be read over the course of the query, as
      * well as the number of CPU opertions performed by your join. Assume that
      * the cost of a single predicate application is roughly 1.
-     * 
-     * 
+     *
+     *
      * @param j
      *            A LogicalJoinNode representing the join operation being
      *            performed.
@@ -111,14 +110,15 @@ public class JoinOptimizer {
             // HINT: You may need to use the variable "j" if you implemented
             // a join algorithm that's more complicated than a basic nested-loops
             // join.
-            return -1.0;
+            // return -1.0;
+            return cost1 + card1 * cost2 + card1 * card2;
         }
     }
 
     /**
      * Estimate the cardinality of a join. The cardinality of a join is the
      * number of tuples produced by the join.
-     * 
+     *
      * @param j
      *            A LogicalJoinNode representing the join operation being
      *            performed.
@@ -156,13 +156,18 @@ public class JoinOptimizer {
             Map<String, Integer> tableAliasToId) {
         int card = 1;
         // some code goes here
-        return card <= 0 ? 1 : card;
+        // return card <= 0 ? 1 : card;
+        /* ??? */
+        if (joinOp.equals(Predicate.Op.EQUALS)) {
+            return (card1 > card2 ? card1 : card2);
+        }
+        return (int)(card1 * card2 * 0.30);
     }
 
     /**
      * Helper method to enumerate all of the subsets of a given size of a
      * specified vector.
-     * 
+     *
      * @param v
      *            The vector whose subsets are desired
      * @param size
@@ -195,7 +200,7 @@ public class JoinOptimizer {
     /**
      * Compute a logical, reasonably efficient join on the specified tables. See
      * project description for hints on how this should be implemented.
-     * 
+     *
      * @param stats
      *            Statistics for each table involved in the join, referenced by
      *            base table names, not alias
@@ -222,8 +227,28 @@ public class JoinOptimizer {
 
         // some code goes here
         //Replace the following
-        return joins;
-    }
+        // return joins;
+        /* code for proj3 */
+        PlanCache optjoin = new PlanCache();
+        	for (int i = 1; i <= joins.size(); i++) {
+        		for (Set<LogicalJoinNode> s : enumerateSubsets(joins, i)) {
+        			CostCard bestPlan = new CostCard();
+        			bestPlan.cost = Double.MAX_VALUE;
+        			//bestPlan.card = Integer.MAX_VALUE;
+        			for (LogicalJoinNode joinNode : joins) {
+        				CostCard plan = computeCostAndCardOfSubplan(stats, filterSelectivities, joinNode, s, bestPlan.cost, optjoin);
+        				if (plan != null && plan.cost < bestPlan.cost) {
+        					bestPlan = plan;
+        					optjoin.addPlan(s, plan.cost, plan.card, plan.plan);
+        				}
+        			}
+        		}
+        	}
+        	if (explain) {
+        		printJoins(joins, optjoin, stats, filterSelectivities);
+        	}
+        	return optjoin.getOrder(new HashSet<LogicalJoinNode>(joins));
+        	}
 
     // ===================== Private Methods =================================
 
@@ -232,7 +257,7 @@ public class JoinOptimizer {
      * joinToRemove to joinSet (joinSet should contain joinToRemove), given that
      * all of the subsets of size joinSet.size() - 1 have already been computed
      * and stored in PlanCache pc.
-     * 
+     *
      * @param stats
      *            table stats for all of the tables, referenced by table names
      *            rather than alias (see {@link #orderJoins})
@@ -393,7 +418,7 @@ public class JoinOptimizer {
     /**
      * Return true if field is a primary key of the specified table, false
      * otherwise
-     * 
+     *
      * @param tableAlias
      *            The alias of the table in the query
      * @param field
@@ -424,7 +449,7 @@ public class JoinOptimizer {
      * Helper function to display a Swing window with a tree representation of
      * the specified list of joins. See {@link #orderJoins}, which may want to
      * call this when the analyze flag is true.
-     * 
+     *
      * @param js
      *            the join plan to visualize
      * @param pc
