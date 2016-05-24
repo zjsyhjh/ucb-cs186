@@ -2,8 +2,10 @@ package simpledb;
 
 import java.io.*;
 import java.io.IOException;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javax.sound.midi.SysexMessage;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -39,6 +41,7 @@ public class BufferPool {
         /* my code for BufferPool */
         this.numPages = numPages;
         this.pagesCacheMap = new HashMap<PageId, Page>();
+        this.lockManager = new LockManager();
         /* my code for BufferPool */
     }
 
@@ -62,6 +65,20 @@ public class BufferPool {
         // some code goes here
         //return null;
         /* my code for BufferPool */
+        boolean hasLock = lockManager.getLock(perm, tid, pid);
+        long start = System.currentTimeMillis();
+        while (!hasLock) {
+            if (System.currentTimeMillis() - start > 300) {
+                throw new TransactionAbortedException();
+            }
+            try {
+                Thread.sleep(10);
+                hasLock = lockManager.getLock(perm, tid, pid);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         Page page = null;
         //not in cache, need to fetch from Dbfile
         if (!pagesCacheMap.containsKey(pid)) {
@@ -70,13 +87,13 @@ public class BufferPool {
             /* my code for proj2 */
             if (pagesCacheMap.size() >= numPages) {
                 /* random evictPage */
-                boolean hasDirtyPage = false;
+                boolean hasNoDirtyPage = false;
                 PageId removeId = null;
                 for (PageId pageId : pagesCacheMap.keySet()) {
                     Page p = pagesCacheMap.get(pageId);
                     removeId = pageId;
-                    if (p.isDirty() != null) {
-                        hasDirtyPage = true;
+                    if (p.isDirty() == null) {
+                        hasNoDirtyPage = true;
                         try {
                             flushPage(pageId);
                         } catch(IOException e) {
@@ -86,13 +103,8 @@ public class BufferPool {
                         break;
                     }
                 }
-                if (!hasDirtyPage) {
-                    try {
-                        flushPage(removeId);
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                    pagesCacheMap.remove(removeId);
+                if (!hasNoDirtyPage) {
+                    throw new DbException("All pages in BufferPool are dirty!");
                 }
             }
             /* my code for proj2 */
@@ -116,6 +128,8 @@ public class BufferPool {
     public  void releasePage(TransactionId tid, PageId pid) {
         // some code goes here
         // not necessary for proj1
+        /* code for prj4 */
+        lockManager.releaseLock(tid, pid);
     }
 
     /**
@@ -126,13 +140,17 @@ public class BufferPool {
     public void transactionComplete(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* code for proj4 */
+        transactionComplete(tid, true);
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
     public boolean holdsLock(TransactionId tid, PageId p) {
         // some code goes here
         // not necessary for proj1
-        return false;
+        // return false;
+        /* code for proj4 */
+        return lockManager.holdsLock(tid, p);
     }
 
     /**
@@ -146,6 +164,20 @@ public class BufferPool {
         throws IOException {
         // some code goes here
         // not necessary for proj1
+        /* code for proj4 */
+        if (commit) {
+            flushPages(tid);
+        } else {
+            for (PageId pid : pagesCacheMap.keySet()) {
+                Page p = pagesCacheMap.get(pid);
+                if (p.isDirty() != null && tid.equals(p.isDirty())) {
+                    Catalog catalog = Database.getCatalog();
+                    Page newPage = catalog.getDbFile(pid.getTableId()).readPage(pid);
+                    pagesCacheMap.put(pid, newPage);
+                }
+            }
+        }
+        lockManager.releaseAllLocks(tid);
     }
 
     /**
